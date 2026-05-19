@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 export default function RequestServicePage() {
   const [services, setServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -15,16 +16,29 @@ export default function RequestServicePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setStatus(null);
+    setServicesLoading(true);
     fetch('/api/services')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Services API failed');
+        return res.json();
+      })
       .then((data) => {
-        setServices(data.services);
-        if (data.services.length > 0) {
+        if (!data.services || data.services.length === 0) {
+          setStatus({ type: 'error', message: 'No services available at the moment.' });
+          setServices([]);
+        } else {
+          setServices(data.services);
           setForm((current) => ({ ...current, serviceId: data.services[0].id }));
         }
       })
-      .catch(() => {
-        setStatus({ type: 'error', message: 'Failed to load services.' });
+      .catch((err) => {
+        console.error('Services load error:', err);
+        setStatus({ type: 'error', message: 'Failed to load services. Please refresh the page.' });
+        setServices([]);
+      })
+      .finally(() => {
+        setServicesLoading(false);
       });
   }, []);
 
@@ -96,7 +110,9 @@ export default function RequestServicePage() {
                 value={form.serviceId}
                 onChange={(event) => setForm({ ...form, serviceId: event.target.value })}
                 required
+                disabled={servicesLoading || services.length === 0}
               >
+                <option value="">{servicesLoading ? 'Loading services...' : services.length === 0 ? 'No services available' : 'Select a service'}</option>
                 {services.map((service) => (
                   <option key={service.id} value={service.id}>
                     {service.name}
@@ -116,7 +132,7 @@ export default function RequestServicePage() {
             />
           </div>
           <div style={{ marginTop: '20px' }}>
-            <button type="submit" disabled={loading}>{loading ? 'Submitting...' : 'Submit Lead'}</button>
+            <button type="submit" disabled={loading || servicesLoading || services.length === 0}>{loading ? 'Submitting...' : 'Submit Lead'}</button>
           </div>
         </form>
         {status ? (
