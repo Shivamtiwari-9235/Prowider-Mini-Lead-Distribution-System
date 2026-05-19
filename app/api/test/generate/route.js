@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createManyRandomLeads } from '../../../../lib/leadAllocation.js';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
   const body = await request.json();
   const count = typeof body?.count === 'number' && body.count > 0 ? body.count : 10;
