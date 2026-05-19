@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '../../../lib/prisma.js';
+import { getPrisma } from '../../../lib/prisma.js';
 
 export async function GET() {
+  const prisma = getPrisma();
   const services = await prisma.service.findMany({ orderBy: { name: 'asc' } });
   return NextResponse.json({ services });
 }

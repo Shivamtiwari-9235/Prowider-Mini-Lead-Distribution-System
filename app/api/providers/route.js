@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '../../../lib/prisma.js';
+import { getPrisma } from '../../../lib/prisma.js';
 
 export async function GET() {
+  const prisma = getPrisma();
   const providers = await prisma.provider.findMany({
     orderBy: { name: 'asc' },
     include: {
